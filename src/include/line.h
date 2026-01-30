@@ -1,0 +1,18 @@
+#ifndef LINE_H_INCLUDED
+#define LINE_H_INCLUDED
+
+#include "array.h"
+#include "str.h"
+
+typedef struct {
+        str s;
+        int no;
+} line;
+
+DYN_ARRAY_TYPE(line *, line_array);
+
+line *line_alloc(int no);
+line *line_from(int no, str s);
+line *line_from_cstr(int no, const char *s);
+
+#endif // LINE_H_INCLUDED
