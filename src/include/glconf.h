@@ -3,12 +3,14 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <termios.h>
 
 extern struct {
         uint32_t flags;
         struct {
                 size_t w;
                 size_t h;
+                struct termios old;
         } term;
 } glconf;
 

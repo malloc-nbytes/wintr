@@ -11,4 +11,6 @@ typedef struct {
         size_t  h;
 } window;
 
+window window_create(size_t w, size_t h);
+
 #endif // WINDOW_H_INCLUDED
