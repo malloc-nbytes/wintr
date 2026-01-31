@@ -3,6 +3,16 @@
 #include <stdlib.h>
 #include <string.h>
 
+static void
+try_resize(str *s)
+{
+        if (s->len >= s->cap) {
+                s->cap = s->cap ? s->cap*2 : 2;
+                s->chars = (char *)realloc(s->chars, s->cap);
+                memset(s->chars + s->len+1, 0, s->cap - s->len);
+        }
+}
+
 str
 str_create(void)
 {
@@ -30,11 +40,7 @@ str_cstr(const str *s)
 void
 str_append(str *s, char c)
 {
-        if (s->len >= s->cap) {
-                s->cap = s->cap ? s->cap*2 : 2;
-                s->chars = (char *)realloc(s->chars, s->cap);
-                memset(s->chars + s->len+1, 0, s->cap - s->len);
-        }
+        try_resize(s);
         s->chars[s->len++] = c;
 }
 
@@ -72,4 +78,23 @@ str_destroy(str *s)
         s->chars = NULL;
         s->len   = 0;
         s->cap   = 0;
+}
+
+void
+str_insert(str    *s,
+           size_t  i,
+           char    ch)
+{
+        if (i > s->len)
+                i = s->len;
+
+        try_resize(s);
+
+        memmove(s->chars+i+1,
+                s->chars+i,
+                s->len-i+1);
+
+        s->chars[i] = ch;
+
+        s->len++;
 }

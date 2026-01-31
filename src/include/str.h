@@ -18,5 +18,6 @@ void        str_overwrite(str *s, const char *repl);
 void        str_clear(str *s);
 size_t      str_len(const str *s);
 void        str_destroy(str *s);
+void        str_insert(str *s, size_t i, char ch);
 
 #endif // STR_H_INCLUDED

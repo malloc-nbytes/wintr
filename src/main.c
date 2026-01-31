@@ -45,6 +45,7 @@ init(void)
 static void
 cleanup(void)
 {
+        clear_terminal();
         if (!disable_raw_terminal(STDIN_FILENO, &glconf.term.old))
                 perror("disable_raw_terminal");
 }
