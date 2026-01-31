@@ -9,6 +9,7 @@ window_create(size_t w, size_t h)
 {
         return (window) {
                 .ab   = NULL,
+                .abi  = 0,
                 .bfrs = dyn_array_empty(bufferp_array),
                 .w    = w,
                 .h    = h,
@@ -21,8 +22,30 @@ window_add_buffer(window *win,
                   int     make_curr)
 {
         dyn_array_append(win->bfrs, b);
-        if (make_curr)
+        if (make_curr) {
                 win->ab = b;
+                win->abi = win->bfrs.len-1;
+        }
+}
+
+static void
+close_buffer(window *win)
+{
+        //dyn_array_rm_at(win, );
+}
+
+static void
+ctrlx(window *win)
+{
+        char        ch;
+        input_type  ty;
+
+        switch (ty = get_input(&ch)) {
+        case INPUT_TYPE_CTRL:
+                if (ch == 'c')
+                        close_buffer(win);
+        default: break;
+        }
 }
 
 void
@@ -42,13 +65,15 @@ window_handle(window *win)
 
                 ty = get_input(&ch);
 
-                if (ty == INPUT_TYPE_ALT) assert(0);
-                if (ty == INPUT_TYPE_CTRL
-                    && ch == 'x') assert(0);
+                if (ty == INPUT_TYPE_ALT)
+                        assert(0);
+                else if (ty == INPUT_TYPE_CTRL && ch == 'x')
+                        ctrlx(win);
+                else {
+                        proc = buffer_process(win->ab, ty, ch);
 
-                proc = buffer_process(win->ab, ty, ch);
-
-                if (proc == BP_UPDATE) assert(0);
-                else if (proc == BP_MOV);
+                        if (proc == BP_UPDATE) assert(0);
+                        else if (proc == BP_MOV);
+                }
         }
 }

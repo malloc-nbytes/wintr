@@ -7,6 +7,7 @@
 
 typedef struct {
         buffer        *ab;
+        size_t         abi;
         bufferp_array  bfrs;
         size_t         w;
         size_t         h;

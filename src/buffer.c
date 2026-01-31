@@ -47,6 +47,10 @@ buffer_up(buffer *b)
                 --b->cy;
                 --b->al;
         }
+
+        const str *s = &b->lns.data[b->al]->s;
+        if (b->cx > str_len(s)-1)
+                b->cx = str_len(s)-1;
 }
 
 static void
@@ -56,6 +60,10 @@ buffer_down(buffer *b)
                 ++b->cy;
                 ++b->al;
         }
+
+        const str *s = &b->lns.data[b->al]->s;
+        if (b->cx > str_len(s)-1)
+                b->cx = str_len(s)-1;
 }
 
 static void
@@ -63,17 +71,15 @@ buffer_right(buffer *b)
 {
         str *s = &b->lns.data[b->al]->s;
 
-        if (b->cx < s->len-1) {
+        if (b->cx < str_len(s)-1)
                 ++b->cx;
-        }
 }
 
 static void
 buffer_left(buffer *b)
 {
-        if (b->cx > 0) {
+        if (b->cx > 0)
                 --b->cx;
-        }
 }
 
 buffer_proc
@@ -81,7 +87,7 @@ buffer_process(buffer     *b,
                input_type  ty,
                char        ch)
 {
-        void (*movement_ar[4])(buffer *) = {
+        static void (*movement_ar[4])(buffer *) = {
                 buffer_up,
                 buffer_down,
                 buffer_right,
