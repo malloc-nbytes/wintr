@@ -23,7 +23,7 @@ window_add_buffer(window *win,
 {
         dyn_array_append(win->bfrs, b);
         if (make_curr) {
-                win->ab = b;
+                win->ab  = b;
                 win->abi = win->bfrs.len-1;
         }
 }
@@ -31,7 +31,8 @@ window_add_buffer(window *win,
 static void
 close_buffer(window *win)
 {
-        //dyn_array_rm_at(win, );
+        dyn_array_rm_at(win->bfrs, win->abi);
+        win->abi = win->bfrs.len-1;
 }
 
 static void
@@ -59,6 +60,9 @@ window_handle(window *win)
         fflush(stdout);
 
         while (1) {
+                if (!win->ab)
+                        break;
+
                 char        ch;
                 input_type  ty;
                 buffer_proc proc;
