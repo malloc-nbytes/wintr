@@ -6,6 +6,6 @@
 void
 usage(void)
 {
-        printf("Usage: ced [OPTIONS...] <filepath>\n");
+        printf("Usage: wintr [OPTIONS...] <filepath>\n");
         exit(0);
 }

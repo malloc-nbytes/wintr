@@ -1,4 +1,4 @@
-AC_INIT([ced], [1.0], [zdhdev@yahoo.com])
+AC_INIT([wintr], [1.0], [zdhdev@yahoo.com])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 AC_PROG_CC
 AC_CONFIG_HEADERS([src/include/config.h])

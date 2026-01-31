@@ -1,5 +1,5 @@
 main
-ced
+wintr
 Makefile
 src/Makefile
 Makefile.in
@@ -16,10 +16,11 @@ missing
 src/.deps/
 src/Makefile
 src/Makefile.in
-src/ced-debug-build
+src/wintr-debug-build
 src/include/config.h
 src/include/stamp-h1
 *.bin
 *.out
 *.o
 src/include/config.h.in
+src/tmp.txt
