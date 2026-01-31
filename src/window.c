@@ -59,7 +59,6 @@ window_handle(window *win)
 {
         assert(win->ab);
 
-        clear_terminal();
         buffer_dump(win->ab);
         gotoxy(win->ab->cx, win->ab->cy);
         fflush(stdout);
@@ -83,6 +82,8 @@ window_handle(window *win)
 
                         if (bproc == BP_INSERT)
                                 buffer_dump_xy(win->ab);
+                        else if (bproc == BP_INSERTNL)
+                                buffer_dump(win->ab);
                         else if (bproc == BP_MOV)
                                 fflush(stdout);
                 }

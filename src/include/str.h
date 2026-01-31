@@ -19,5 +19,6 @@ void        str_clear(str *s);
 size_t      str_len(const str *s);
 void        str_destroy(str *s);
 void        str_insert(str *s, size_t i, char ch);
+void        str_cut(str *s, size_t i);
 
 #endif // STR_H_INCLUDED

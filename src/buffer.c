@@ -98,7 +98,20 @@ static void
 insert_char(buffer *b, char ch)
 {
         str_insert(&b->lns.data[b->al]->s, b->cx, ch);
-        ++b->cx;
+
+        if (ch == 10) {
+                ++b->cx;
+
+                const char *rest = str_cstr(&b->lns.data[b->al]->s)+b->cx;
+                line *newln = line_from(9999, str_from(rest));
+                dyn_array_insert_at(b->lns, b->al+1, newln);
+                str_cut(&b->lns.data[b->al]->s, b->cx);
+                b->cx = 0;
+                ++b->cy;
+                ++b->al;
+        } else {
+                ++b->cx;
+        }
 }
 
 void
@@ -107,8 +120,7 @@ buffer_dump_xy(const buffer *b)
         const str *s;
 
         s = &b->lns.data[b->al]->s;
-        gotoxy(0, b->cy);
-        clear_to_eol(0, b->cy);
+        clear_line(0, b->cy);
         printf("%s", str_cstr(s));
         gotoxy(b->cx, b->cy);
         fflush(stdout);
@@ -152,7 +164,7 @@ buffer_process(buffer     *b,
         } break;
         case INPUT_TYPE_NORMAL: {
                 insert_char(b, ch);
-                return BP_INSERT;
+                return ch == 10 ? BP_INSERTNL : BP_INSERT;
         } break;
         default: break;
         }
@@ -163,8 +175,11 @@ buffer_process(buffer     *b,
 void
 buffer_dump(const buffer *b)
 {
+        clear_terminal();
         for (size_t i = 0; i < b->lns.len; ++i) {
                 line *l = b->lns.data[i];
                 printf("%s", str_cstr(&l->s));
         }
+        gotoxy(b->cx, b->cy);
+        fflush(stdout);
 }

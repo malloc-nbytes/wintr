@@ -3,20 +3,6 @@
 
 #include <stdlib.h>
 
-/**
- * Creates a new dynamic array type globally.
- * Note: Use dyn_array_init() to initialize
- *       any instances of it.
- * Example:
- *   dyn_array_type(int, Int_Array);
- *
- *   void f(Int_Array *arr);
- *
- *   int main(void) {
- *       Int_Array arr;
- *       return 0;
- *   }
- */
 #define DYN_ARRAY_TYPE(ty, name) \
     typedef struct name {        \
         ty *data;                \
@@ -30,18 +16,6 @@
                 .cap = 0,                       \
         }
 
-/**
- * Initializes a global array type. This is only
- * used if you use DYN_ARRAY_TYPE().
- * Example:
- *   dyn_array_type(int, Int_Array);
- *
- *   int main(void) {
- *       Int_Array arr;
- *       dyn_array_init_type(arr); // <- here
- *       return 0;
- *   }
- */
 #define dyn_array_init_type(da)                 \
     do {                                        \
         (da).data = malloc(sizeof(*(da).data)); \
@@ -49,24 +23,12 @@
         (da).len = 0;                           \
     } while (0)
 
-/**
- * Creates a new dynamic array on the stack.
- * Example:
- *   dyn_array(int, int_vector);
- */
 #define dyn_array(ty, name)                                        \
     struct {                                                       \
         ty *data;                                                  \
         size_t len, cap;                                           \
     } (name) = { .data = (typeof(ty) *)malloc(sizeof(ty)), .len = 0, .cap = 1 };
 
-/**
- * Append to a dynamic array.
- * Example:
- *   dyn_array(int, int_vector);
- *   for (int i = 0; i < 10; ++i)
- *     dyn_array_append(int_vector, i);
- */
 #define dyn_array_append(da, value)                                     \
     do {                                                                \
         if ((da).len >= (da).cap) {                                     \
@@ -78,12 +40,6 @@
         (da).data[(da).len++] = (value);                                \
     } while (0)
 
-/**
- * Free a dynamic array.
- * Example:
- *   dyn_array(int, int_vector);
- *   dyn_array_free(int_vector);
-*/
 #define dyn_array_free(da)       \
     do {                         \
         if ((da).data != NULL) { \
@@ -92,46 +48,15 @@
         (da).len = (da).cap = 0; \
     } while (0)
 
-/**
- * Get an element safely at an index.
- * Will panic if the element is out of bounds.
- * Example:
- *   dyn_array(int, int_vector);
- *   dyn_array_append(int_vector, i);
- *   printf("%d\n", dyn_array_at_s(int_vector));
- */
 #define dyn_array_at_s(da, i)                                      \
     ((i) < (da).len ? (da).data[i] : (fprintf(stderr,              \
     "[dyn_array error]: index %zu is out of bounds (len = %zu)\n", \
     (size_t)(i), (size_t)(da).len), exit(1), (da).data[0]))
 
-/**
- * Get an element at an index.
- * Example:
- *   dyn_array(int, int_vector);
- *   dyn_array_append(int_vector, i);
- *   printf("%d\n", dyn_array_at(int_vector));
- */
 #define dyn_array_at(da, i) ((da).data[i])
 
-/**
- * Clear a dynamic array.
- * Example:
- *   dyn_array(int, int_vector);
- *   dyn_array_append(int_vector, i);
- *   dyn_array_clear(int_vector);
- */
 #define dyn_array_clear(da) (da).len = 0;
 
-/**
- * Remove an element at index `idx`.
- * Example:
- *   dyn_array(int, int_vector);
- *   ...
- *   dyn_array_rm_at(int_vector, 0);
- *   dyn_array_rm_at(int_vector, 5);
- *   ...
- */
 #define dyn_array_rm_at(da, idx) \
     do {                                                     \
         for (size_t __i_ = (idx); __i_ < (da).len-1; ++__i_) \
@@ -139,9 +64,29 @@
         (da).len--;                                          \
     } while (0)
 
-#define dyn_array_explode(da) (da).data, (da).len, (da).cap
-
-#define dyn_array_explode_mem(da) &(da).data, &(da).len, &(da).cap
+#define dyn_array_insert_at(da, idx, value) \
+    do { \
+        if ((idx) > (da).len) { \
+            fprintf(stderr, \
+                "[dyn_array error]: insert index %zu is out of bounds (len = %zu)\n", \
+                (size_t)(idx), (size_t)(da).len); \
+            exit(1); \
+        } \
+        if ((da).len >= (da).cap) { \
+            (da).cap = (da).cap ? (da).cap * 2 : 2; \
+            (da).data = (typeof(*((da).data)) *) \
+                realloc((da).data, (da).cap * sizeof(*((da).data))); \
+            if ((da).data == NULL) { \
+                fprintf(stderr, "[dyn_array error]: realloc failed\n"); \
+                exit(1); \
+            } \
+        } \
+        for (size_t __i = (da).len; __i > (idx); --__i) { \
+            (da).data[__i] = (da).data[__i - 1]; \
+        } \
+        (da).data[idx] = (value); \
+        (da).len++; \
+    } while (0)
 
 // Common types for arrays.
 

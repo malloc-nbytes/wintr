@@ -98,3 +98,13 @@ str_insert(str    *s,
 
         s->len++;
 }
+
+void
+str_cut(str *s, size_t i)
+{
+        if (i >= s->len)
+                return;
+
+        memset(s->chars+i, 0, s->cap-i);
+        s->len = i;
+}

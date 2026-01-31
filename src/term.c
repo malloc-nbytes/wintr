@@ -170,26 +170,16 @@ clear_terminal(void)
 }
 
 void
-clear_line(void)
+gotoxy(int x, int y)
 {
-        // Clear the entire line
-        printf("\033[2K");
-
-        // Move cursor to the start of the line
-        printf("\033[0G");
-
-        fflush(stdout);
-}
-
-void
-gotoxy(int x, int y) {
         printf("\033[%d;%dH", y+1, x+1);
 }
 
 void
-clear_to_eol(size_t dx, size_t dy)
+clear_line(size_t dx, size_t dy)
 {
-        printf("\x1b[K");
+        printf("\033[2K");
+        printf("\033[0G");
         gotoxy(dx, dy);
         fflush(stdout);
 }

@@ -11,6 +11,7 @@
 typedef enum {
         BP_NOP = 0,
         BP_INSERT,
+        BP_INSERTNL,
         BP_MOV,
 } buffer_proc;
 
