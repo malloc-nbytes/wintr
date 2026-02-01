@@ -174,17 +174,20 @@ backspace(buffer *b)
         ln      = b->lns.data[b->al];
         newline = 0;
 
-        /* if (b->cx == 0) { */
-        /*         if (b->al == 0) */
-        /*                 return 0; */
-        /*         line *prevln = b->lns.data[b->al-1]; */
-        /*         str_concat(&prevln->s, str_cstr(&ln->s)); */
-        /*         line_free(b->lns.data[b->al]); */
-        /*         dyn_array_rm_at(b->lns, b->al); */
-        /*         //b->cx = str_len(&prevln->s)-1; */
-        /*         --b->cy; */
-        /*         return 1; */
-        /* } */
+        if (b->cx == 0) {
+                if (b->al == 0)
+                        return 0;
+                line *prevln = b->lns.data[b->al-1];
+                size_t prevln_len = str_len(&prevln->s);
+                str_rm(&prevln->s, prevln_len-1);
+                str_concat(&prevln->s, str_cstr(&ln->s));
+                line_free(b->lns.data[b->al]);
+                dyn_array_rm_at(b->lns, b->al);
+                --b->al;
+                b->cx = prevln_len-1;
+                --b->cy;
+                return 1;
+        }
 
         buffer_left(b);
 
