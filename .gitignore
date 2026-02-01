@@ -1,5 +1,7 @@
 main
 wintr
+ww
+ww-debug-build
 Makefile
 src/Makefile
 Makefile.in
