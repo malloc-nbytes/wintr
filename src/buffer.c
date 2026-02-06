@@ -190,7 +190,8 @@ static void
 insert_char(buffer *b, char ch)
 {
         if (!b->lns.data) {
-                dyn_array_append(b->lns, line_alloc());
+                char tmp[2] = {10, 0};
+                dyn_array_append(b->lns, line_from(str_from(tmp)));
         }
 
         str_insert(&b->lns.data[b->al]->s, b->cx, ch);
