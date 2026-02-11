@@ -187,7 +187,9 @@ buffer_bol(buffer *b)
 }
 
 static void
-insert_char(buffer *b, char ch)
+insert_char(buffer *b,
+            char    ch,
+            int     newline_advance)
 {
         if (!b->lns.data) {
                 char tmp[2] = {10, 0};
@@ -207,9 +209,11 @@ insert_char(buffer *b, char ch)
                 dyn_array_insert_at(b->lns, b->al+1, newln);
                 str_cut(&b->lns.data[b->al]->s, b->cx);
 
-                b->cx = 0;
-                ++b->cy;
-                ++b->al;
+                if (newline_advance) {
+                        b->cx = 0;
+                        ++b->cy;
+                        ++b->al;
+                }
         }
 
         b->wish_col = b->cx;
@@ -287,7 +291,7 @@ static void
 tab(buffer *b)
 {
         for (size_t i = 0; i < 8; ++i)
-                insert_char(b, ' ');
+                insert_char(b, ' ', 1);
 }
 
 static void
@@ -343,6 +347,10 @@ buffer_process(buffer     *b,
                 } else if (ch == CTRL_K) {
                         delete_until_eol(b);
                         return BP_INSERT;
+                } else if (ch == CTRL_O) {
+                        insert_char(b, 10, 0);
+                        --b->cx;
+                        return BP_INSERTNL;
                 }
         } break;
         case INPUT_TYPE_ARROW: {
@@ -353,7 +361,7 @@ buffer_process(buffer     *b,
                 if (BACKSPACE(ch)) {
                         return backspace(b) ? BP_INSERTNL : BP_INSERT;
                 }
-                insert_char(b, ch);
+                insert_char(b, ch, 1);
                 return ch == 10 ? BP_INSERTNL : BP_INSERT;
         } break;
         default: break;
