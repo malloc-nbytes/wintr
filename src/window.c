@@ -54,12 +54,11 @@ ctrlx(window *win)
         input_type  ty;
 
         switch (ty = get_input(&ch)) {
-        case INPUT_TYPE_NORMAL:
-                if (ch == 'q')
-                        close_buffer(win);
         case INPUT_TYPE_CTRL:
                 if (ch == CTRL_S)
                         return save_buffer(win);
+                if (ch == CTRL_Q)
+                        close_buffer(win);
         default: break;
         }
 
