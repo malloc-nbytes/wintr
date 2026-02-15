@@ -17,6 +17,11 @@ typedef enum {
         BP_MOV,
 } buffer_proc;
 
+typedef enum {
+        BS_NORMAL = 0,
+        BS_SEARCH,
+} buffer_state;
+
 typedef struct {
         str          filename;
         line_array   lns;      // lines
@@ -26,8 +31,9 @@ typedef struct {
         size_t       wish_col; // wished column
         size_t       hscrloff; // horizontal scroll offset
         size_t       vscrloff; // vertical scroll offset
-        window      *parent;
-        int          saved;
+        window      *parent;   // the parent window
+        int          saved;    // has the document been saved?
+        buffer_state state;    // our current state
 } buffer;
 
 DYN_ARRAY_TYPE(buffer *, bufferp_array);

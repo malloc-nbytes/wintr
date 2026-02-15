@@ -31,6 +31,7 @@ buffer_alloc(window *parent)
         b->vscrloff = 0;
         b->parent   = parent;
         b->saved    = 1;
+        b->state    = BS_NORMAL;
 
         return b;
 }
