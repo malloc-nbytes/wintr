@@ -407,6 +407,20 @@ next_paragraph(buffer *b)
         adjust_scroll(b);
 }
 
+static void
+kill_line(buffer *b)
+{
+        line *ln;
+
+        if (b->lns.len <= 0)
+                return;
+
+        ln = b->lns.data[b->al];
+
+        line_free(ln);
+        dyn_array_rm_at(b->lns, b->al);
+}
+
 buffer_proc
 buffer_process(buffer     *b,
                input_type  ty,
@@ -471,6 +485,9 @@ buffer_process(buffer     *b,
                 } else if (ch == '}') {
                         next_paragraph(b);
                         return BP_MOV;
+                } else if (ch == 'k') {
+                        kill_line(b);
+                        return BP_INSERTNL;
                 }
         } break;
         case INPUT_TYPE_ARROW: {
@@ -534,8 +551,8 @@ draw_status(const buffer *b,
 
         sprintf(buf, "%s:%zu:%zu%s",
                 str_cstr(&b->filename),
-                b->cx+1,
                 b->cy+1,
+                b->cx+1,
                 !b->saved ? "*" : "");
         printf("%s", buf);
         len += strlen(buf);
@@ -566,7 +583,6 @@ buffer_dump_xy(const buffer *b)
 
         gotoxy(0, screen_y);
         printf("\x1b[K"); // clear rest of line
-        //printf("%s", str_cstr(s));
         drawln(s);
 
         gotoxy(b->cx - b->hscrloff, screen_y);
@@ -588,7 +604,6 @@ buffer_dump(const buffer *b)
 
                 gotoxy(0, i - b->vscrloff);
                 printf("\x1b[K");
-                // printf("%s", str_cstr(&l->s));
                 drawln(&l->s);
         }
 
