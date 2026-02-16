@@ -572,20 +572,24 @@ search(buffer *b)
         input_type  ty;
         char        ch;
         str        *input;
+        int         first;
 
         input    = &b->last_search;
         b->state = BS_SEARCH;
-
-        gotoxy(0, b->parent->h);
+        first    = 0;
 
         while (1) {
-                buffer_dump(b);
+                gotoxy(0, b->parent->h);
                 clear_line(0, b->parent->h);
                 printf("Search: %s", str_cstr(input));
                 fflush(stdout);
 
                 ty = get_input(&ch);
                 if (ty == INPUT_TYPE_NORMAL) {
+                        if (first) {
+                                str_clear(input);
+                                first = 0;
+                        }
                         if (BACKSPACE(ch))
                                 str_pop(input);
                         else if (ENTER(ch))
@@ -595,6 +599,7 @@ search(buffer *b)
                 }
                 else
                         break;
+                buffer_dump(b);
         }
 
         gotoxy(b->cx - b->hscrloff, b->cy - b->vscrloff);
