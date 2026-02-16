@@ -129,3 +129,16 @@ str_rm(str *s, size_t i)
         s->chars[s->len-1] = 0;
         --s->len;
 }
+
+char
+str_pop(str *s)
+{
+        char ch;
+
+        if (s->len == 0)
+                return 0;
+
+        ch = s->chars[s->len-1];
+        str_rm(s, s->len-1);
+        return ch;
+}

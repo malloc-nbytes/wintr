@@ -524,6 +524,39 @@ del_word(buffer *b)
         }
 }
 
+static void
+search(const buffer *b)
+{
+        input_type ty;
+        char       ch;
+        str        input;
+
+        input = str_create();
+
+        gotoxy(0, b->parent->h);
+
+        while (1) {
+                clear_line(0, b->parent->h);
+                printf("Search: %s", str_cstr(&input));
+                fflush(stdout);
+
+                ty = get_input(&ch);
+                if (ty == INPUT_TYPE_NORMAL) {
+                        if (BACKSPACE(ch))
+                                str_pop(&input);
+                        else if (ENTER(ch))
+                                break;
+                        else
+                                str_append(&input, ch);
+                }
+                else
+                        break;
+        }
+
+        str_destroy(&input);
+        gotoxy(b->cx - b->hscrloff, b->cy - b->vscrloff);
+}
+
 buffer_proc
 buffer_process(buffer     *b,
                input_type  ty,
@@ -572,7 +605,11 @@ buffer_process(buffer     *b,
                         return BP_INSERTNL;
                 } else if (ch == CTRL_H) {
                         return backspace(b) ? BP_INSERTNL : BP_INSERT;
+                } else if (ch == CTRL_S) {
+                        search(b);
+                        return BP_MOV;
                 }
+
         } break;
         case INPUT_TYPE_ALT: {
                 if (ch == 'm') {
