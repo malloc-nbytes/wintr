@@ -576,7 +576,7 @@ search(buffer *b)
 
         input    = &b->last_search;
         b->state = BS_SEARCH;
-        first    = 0;
+        first    = 1;
 
         while (1) {
                 gotoxy(0, b->parent->h);
@@ -587,7 +587,7 @@ search(buffer *b)
                 ty = get_input(&ch);
                 if (ty == INPUT_TYPE_NORMAL) {
                         if (first) {
-                                str_clear(input);
+                                str_clear(&b->last_search);
                                 first = 0;
                         }
                         if (BACKSPACE(ch))
