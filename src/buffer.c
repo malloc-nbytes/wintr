@@ -4,6 +4,7 @@
 #include "utils.h"
 #include "window.h"
 #include "colors.h"
+#include "pair.h"
 
 #include <assert.h>
 #include <stdlib.h>
@@ -24,6 +25,11 @@ draw_status(const buffer *b,
 static int_array
 find_line_matches(const buffer *b,
                   const str    *s);
+
+PAIR_TYPE(int, int, int_pair);
+PAIR_IMPL(int, int, int_pair);
+DYN_ARRAY_TYPE(int_array, int_array_array);
+DYN_ARRAY_TYPE(int_pair, int_pair_array);
 
 static char_array g_cpy_buf = dyn_array_empty(char_array);
 
@@ -571,30 +577,6 @@ del_word(buffer *b)
 }
 
 static void
-goto_search_forward(buffer *b,
-                    int     search_next)
-{
-        for (size_t i = b->al; i < b->lns.len; ++i) {
-                const str *s;
-                int_array verts;
-
-                s     = &b->lns.data[i]->s;
-                verts = find_line_matches(b, s);
-
-                if (verts.len > 0) {
-                        b->al = i;
-                        b->cy = i;
-                        b->cx = verts.data[0];
-                        adjust_scroll(b);
-                        dyn_array_free(verts);
-                        break;
-                }
-
-                dyn_array_free(verts);
-        }
-}
-
-static void
 center_view(buffer *b)
 {
         int rows = b->parent->h;
@@ -613,6 +595,42 @@ center_view(buffer *b)
         adjust_scroll(b);
 }
 
+static int
+goto_search_forward(buffer *b,
+                    int     search_next)
+{
+        int_pair_array pairs;
+        int            sn;
+
+        pairs = dyn_array_empty(int_pair_array);
+        sn    = search_next;
+
+        for (size_t i = /*b->al*/0; i < b->lns.len; ++i) {
+                const str *s;
+                int_array  verts;
+
+                s     = &b->lns.data[i]->s;
+                verts = find_line_matches(b, s);
+
+                for (size_t j = 0; j < verts.len; ++j)
+                        dyn_array_append(pairs, int_pair_create(i, verts.data[j]));
+
+                dyn_array_free(verts);
+        }
+
+        if (pairs.len > 0 && sn < pairs.len) {
+                b->al = pairs.data[sn].l;
+                b->cy = pairs.data[sn].l;
+                b->cx = pairs.data[sn].r;
+                adjust_scroll(b);
+        } else {
+                return 0;
+        }
+
+        dyn_array_free(pairs);
+        return 1;
+}
+
 static void
 search(buffer *b)
 {
@@ -624,6 +642,7 @@ search(buffer *b)
         int         old_cy;
         int         old_al;
         int         search_next;
+        int         prev_search_next;
 
         input       = &b->last_search;
         b->state    = BS_SEARCH;
@@ -632,9 +651,11 @@ search(buffer *b)
         old_cy      = b->cy;
         old_al      = b->al;
         search_next = 0;
+        prev_search_next = 0;
 
         while (1) {
-                goto_search_forward(b, search_next);
+                if (!goto_search_forward(b, search_next))
+                        search_next = prev_search_next;
                 if (!first) {
                         center_view(b);
                 }
@@ -663,7 +684,11 @@ search(buffer *b)
                                 str_append(input, ch);
                         }
                 } else if (ty == INPUT_TYPE_CTRL && ch == CTRL_S) {
-                        goto_search_forward(b, ++search_next);
+                        prev_search_next = search_next;
+                        ++search_next;
+                } else if (ty == INPUT_TYPE_CTRL && ch == CTRL_R) {
+                        prev_search_next = search_next;
+                        --search_next;
                 } else {
                         b->cx = old_cx; b->cy = old_cy; b->al = old_al;
                         break;
