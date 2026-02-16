@@ -547,7 +547,8 @@ search(buffer *b)
         while (1) {
                 clear_line(0, b->parent->h);
                 printf("Search: %s", str_cstr(input));
-                buffer_dump(b);
+                //buffer_dump(b);
+                fflush(stdout);
 
                 ty = get_input(&ch);
                 if (ty == INPUT_TYPE_NORMAL) {
@@ -742,12 +743,6 @@ drawln(const buffer *b,
 
         size_t i = 0;
         while (i <= (size_t)last) {
-                //if (sraw[i] == '\n') {
-                //        putchar('\n');
-                //        i++;
-                //        continue;
-                //}
-
                 if (is_identifier_char(sraw[i])) {
                         size_t start = i;
 
