@@ -599,11 +599,16 @@ center_view(buffer *b)
         adjust_scroll(b);
 }
 
-
-// b->al = pairs.data[sn].l; b->cy = pairs.data[sn].l; b->cx = pairs.data[sn].r; adjust_scroll(b);
-static int
-goto_search_next(buffer *b)
+int_pair_array
+find_all_matches_in_buffer(buffer *b)
 {
+        int_pair_array pairs = dyn_array_empty(int_pair_array);
+        for (size_t i = 0; i < b->lns.len; ++i) {
+                int_array verts = find_line_matches(b, &b->lns.data[i]->s);
+                for (size_t j = 0; j < verts.len; ++j)
+                        dyn_array_append(pairs, int_pair_create(i, verts.data[j]));
+        }
+        return pairs;
 }
 
 static void
@@ -617,7 +622,7 @@ search(buffer *b)
         int         old_cy;
         int         old_al;
         int         step;
-        int         first_adjustment;
+        int         adjust;
 
         input       = &b->last_search;
         b->state    = BS_SEARCH;
@@ -626,21 +631,23 @@ search(buffer *b)
         old_cy      = b->cy;
         old_al      = b->al;
         step        = 0;
-        first_adjustment = 1;
+        adjust      = 1;
 
         while (1) {
-                int_pair_array pairs = dyn_array_empty(int_pair_array);
-                for (size_t i = 0; i < b->lns.len; ++i) {
-                        int_array verts = find_line_matches(b, &b->lns.data[i]->s);
-                        for (size_t j = 0; j < verts.len; ++j)
-                                dyn_array_append(pairs, int_pair_create(i, verts.data[j]));
-                        if (first_adjustment) {
-                                if (i < b->al)
-                                        step += verts.len;
+                int_pair_array pairs = find_all_matches_in_buffer(b);
+
+                if (adjust) {
+                        step = 0;
+
+                        for (size_t i = 0; i < pairs.len; ++i) {
+                                if (pairs.data[i].l < b->al)
+                                        ++step;
+                                else
+                                        break;
                         }
-                        dyn_array_free(verts);
                 }
-                first_adjustment = 0;
+
+                adjust = 0;
 
                 if (pairs.len > 0 && step < pairs.len) {
                         b->al = pairs.data[step].l;
@@ -661,19 +668,24 @@ search(buffer *b)
                 if (ty == INPUT_TYPE_NORMAL) {
                         if (first && (BACKSPACE(ch)
                                 || (ty == INPUT_TYPE_NORMAL && ch != '\n'))) {
+                                b->cx = old_cx; b->cy = old_cy; b->al = old_al;
                                 str_clear(&b->last_search);
-                                first = 0;
-                                first_adjustment = 1;
-                                step = 0;
+                                first  = 0;
+                                adjust = 1;
                         }
                         if (BACKSPACE(ch)) {
                                 b->cx = old_cx; b->cy = old_cy; b->al = old_al;
                                 if (str_len(input) > 0)
                                         str_pop(input);
+                                adjust = 1;
                         } else if (ENTER(ch)) {
+                                b->al = pairs.data[step].l;
+                                b->cy = pairs.data[step].l;
+                                b->cx = pairs.data[step].r;
                                 break;
                         } else {
                                 b->cx = old_cx; b->cy = old_cy; b->al = old_al;
+                                adjust = 1;
                                 str_append(input, ch);
                         }
                 } else if (ty == INPUT_TYPE_CTRL && ch == CTRL_S) {
@@ -782,7 +794,7 @@ buffer_process(buffer     *b,
                         return BP_INSERTNL;
                 } else if (ch == CTRL_H) {
                         return backspace(b) ? BP_INSERTNL : BP_INSERT;
-                } else if (ch == CTRL_S) {
+                } else if (ch == CTRL_S || ch == CTRL_R) {
                         search(b);
                         return BP_MOV;
                 } else if (ch == CTRL_L) {
