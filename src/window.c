@@ -373,9 +373,7 @@ choose_buffer(window *win)
         for (size_t i = 0; i < win->bfrs.len; ++i)
                 dyn_array_append(names, strdup(str_cstr(&win->bfrs.data[i]->filename)));
 
-        char *selected = completion_run(win,
-                                        "Switch Buffer",
-                                        names);
+        char *selected = completion_run(win, "Switch Buffer", names);
 
         if (!selected)
                 goto done;
@@ -391,6 +389,50 @@ choose_buffer(window *win)
         buffer_dump(win->ab);
 }
 
+static void
+compilation_buffer(window *win)
+{
+        str input;
+
+        input = str_create();
+
+        while (1) {
+                gotoxy(0, win->h);
+                clear_line(0, win->h);
+                printf("Compile [ %s", str_cstr(&input));
+                fflush(stdout);
+
+                char       ch;
+                input_type ty;
+
+                ty = get_input(&ch);
+                switch (ty) {
+                case INPUT_TYPE_NORMAL:
+                        if (ch == '\n')
+                                goto done;
+                        else if (BACKSPACE(ch))
+                                str_pop(&input);
+                        else
+                                str_append(&input, ch);
+                        break;
+                case INPUT_TYPE_CTRL:
+                        if (ch == CTRL_G)
+                                goto done;
+                        break;
+                default: break;
+                }
+        }
+
+done:
+        if (input.len <= 0) {
+                str_destroy(&input);
+                return;
+        }
+
+        assert(0);
+        str_destroy(&input);
+}
+
 static int
 ctrlx(window *win)
 {
@@ -403,6 +445,8 @@ ctrlx(window *win)
                         close_buffer(win);
                 if (ch == 'b')
                         choose_buffer(win);
+                if (ch == 'x')
+                        compilation_buffer(win);
         } break;
         case INPUT_TYPE_CTRL:
                 if (ch == CTRL_S)

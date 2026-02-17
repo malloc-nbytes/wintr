@@ -478,7 +478,7 @@ del_char(buffer *b)
         if (b->cx > str_len(&ln->s)-1)
                 b->cx = str_len(&ln->s)-1;
 
-        return adjust_scroll(b);
+        return adjust_scroll(b) || newline;
 }
 
 static int
