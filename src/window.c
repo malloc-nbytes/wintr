@@ -53,6 +53,13 @@ close_buffer(window *win)
                 buffer_dump(win->ab);
 }
 
+static void
+quit(window *win)
+{
+        while (win->ab)
+                close_buffer(win);
+}
+
 static int
 save_buffer(window *win)
 {
@@ -325,11 +332,15 @@ ctrlx(window *win)
         input_type  ty;
 
         switch (ty = get_input(&ch)) {
+        case INPUT_TYPE_NORMAL: {
+                if (ch == 'k')
+                        close_buffer(win);
+        } break;
         case INPUT_TYPE_CTRL:
                 if (ch == CTRL_S)
                         return save_buffer(win);
                 if (ch == CTRL_Q)
-                        close_buffer(win);
+                        quit(win);
                 if (ch == CTRL_F)
                         find_file(win);
         default: break;
