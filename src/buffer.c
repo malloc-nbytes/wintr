@@ -275,7 +275,7 @@ buffer_down(buffer *b)
                 b->cx = b->wish_col;
 
         gotoxy(b->cx - b->hscrloff, b->cy - b->vscrloff);
-        return adjust_scroll(b);
+        return adjust_scroll(b) || b->state == BS_SELECTION;
 }
 
 static int
@@ -287,12 +287,12 @@ buffer_right(buffer *b)
                 b->cx = 0;
                 ++b->cy;
                 ++b->al;
-        }
-        else if (b->cx < str_len(s)-1)
+        } else if (b->cx < str_len(s)-1) {
                 ++b->cx;
+        }
         b->wish_col = b->cx;
         gotoxy(b->cx - b->hscrloff, b->cy - b->vscrloff);
-        return adjust_scroll(b);
+        return adjust_scroll(b) || b->state == BS_SELECTION;
 }
 
 static int
@@ -1208,6 +1208,9 @@ drawln(const buffer *b,
                 else                 break;
         }
 
+        if (eol == -1)
+                eol = n-1;
+
         if (b->state == BS_SEARCH) {
                 int_array matches = find_line_matches(b, s);
 
@@ -1221,7 +1224,9 @@ drawln(const buffer *b,
                                 dyn_array_rm_at(matches, 0);
                                 i += str_len(&b->last_search)-1;
                         } else {
-                                putchar(str_at(s, i));
+                                char ch = str_at(s, i);
+                                if (ch == '\t') printf(GRAY ">" RESET);
+                                else            putchar(ch);
                         }
                 }
 
@@ -1264,22 +1269,29 @@ drawln(const buffer *b,
                                 in_selection = (i < end_x);
                         }
 
-                        if (in_selection) {
+                        char ch = str_at(s, i);
+                        const char *color = in_selection ? INVERT : RESET;
+
+                        /*if (in_selection) {
                                 printf(INVERT "%c", str_at(s, i));
                         } else {
                                 printf(RESET "%c", str_at(s, i));
-                        }
+                        }*/
+
+                        if (isprint(ch) || ch == '\n') printf("%s%c", color, ch);
+                        else             printf("%s" GRAY ">" RESET, color);
                 }
 
                 goto done;
         }
 
-        if (eol == -1) {
-                printf("%s", sraw);
-        } else {
-                for (size_t i = 0; i < eol; ++i) {
+        for (size_t i = 0; i < eol; ++i) {
+                if (sraw[i] == '\t')
+                        printf(GRAY ">" RESET);
+                else if (isprint(sraw[i]))
                         putchar(sraw[i]);
-                }
+                else
+                        printf(RED INVERT "%c" RESET, sraw[i]);
         }
 
 done:
