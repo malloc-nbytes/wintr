@@ -34,7 +34,6 @@ DYN_ARRAY_TYPE(int_pair, int_pair_array);
 
 static char_array g_cpy_buf = dyn_array_empty(char_array);
 
-
 static const char *
 state_to_cstr(const buffer *b)
 {
@@ -202,36 +201,48 @@ get_win_hight(buffer *b)
         return b->parent->h-1; // -1 for status line
 }
 
-static void
+static int
 adjust_vscroll(buffer *b)
 {
         size_t win_h = get_win_hight(b);
 
-        if (b->cy < b->vscrloff)
+        if (b->cy < b->vscrloff) {
                 b->vscrloff = b->cy;
-        else if (b->cy >= b->vscrloff + win_h)
+                return 1;
+        } else if (b->cy >= b->vscrloff + win_h) {
                 b->vscrloff = b->cy - win_h + 1;
+                return 1;
+        }
+        return 0;
 }
 
-static void
+static int
 adjust_hscroll(buffer *b)
 {
         size_t win_w = b->parent->w;
 
-        if (b->cx < b->hscrloff)
+        if (b->cx < b->hscrloff) {
                 b->hscrloff = b->cx;
-        else if (b->cx >= b->hscrloff + win_w)
+                return 1;
+        } else if (b->cx >= b->hscrloff + win_w) {
                 b->hscrloff = b->cx - win_w + 1;
+                return 1;
+        }
+        return 0;
 }
 
-static void
+static int
 adjust_scroll(buffer *b)
 {
-        adjust_vscroll(b);
-        adjust_hscroll(b);
+        int res;
+
+        res = adjust_vscroll(b);
+        res = adjust_hscroll(b) || res;
+
+        return res;
 }
 
-static void
+static int
 buffer_up(buffer *b)
 {
         if (b->cy > 0) {
@@ -246,10 +257,10 @@ buffer_up(buffer *b)
                 b->cx = b->wish_col;
 
         gotoxy(b->cx - b->hscrloff, b->cy - b->vscrloff);
-        adjust_scroll(b);
+        return adjust_scroll(b);
 }
 
-static void
+static int
 buffer_down(buffer *b)
 {
         if (b->cy < b->lns.len-1) {
@@ -264,10 +275,10 @@ buffer_down(buffer *b)
                 b->cx = b->wish_col;
 
         gotoxy(b->cx - b->hscrloff, b->cy - b->vscrloff);
-        adjust_scroll(b);
+        return adjust_scroll(b);
 }
 
-static void
+static int
 buffer_right(buffer *b)
 {
         str *s = &b->lns.data[b->al]->s;
@@ -281,10 +292,10 @@ buffer_right(buffer *b)
                 ++b->cx;
         b->wish_col = b->cx;
         gotoxy(b->cx - b->hscrloff, b->cy - b->vscrloff);
-        adjust_scroll(b);
+        return adjust_scroll(b);
 }
 
-static void
+static int
 buffer_left(buffer *b)
 {
         if (b->cx == 0 && b->cy > 0) {
@@ -296,25 +307,25 @@ buffer_left(buffer *b)
                 --b->cx;
         b->wish_col = b->cx;
         gotoxy(b->cx - b->hscrloff, b->cy - b->vscrloff);
-        adjust_scroll(b);
+        return adjust_scroll(b);
 }
 
-static void
+static int
 buffer_eol(buffer *b)
 {
         b->cx = str_len(&b->lns.data[b->al]->s)-1;
         b->wish_col = b->cx;
         gotoxy(b->cx - b->hscrloff, b->cy - b->vscrloff);
-        adjust_scroll(b);
+        return adjust_scroll(b);
 }
 
-static void
+static int
 buffer_bol(buffer *b)
 {
         b->cx = 0;
         b->wish_col = b->cx;
         gotoxy(b->cx - b->hscrloff, b->cy - b->vscrloff);
-        adjust_scroll(b);
+        return adjust_scroll(b);
 }
 
 static void
@@ -467,8 +478,7 @@ del_char(buffer *b)
         if (b->cx > str_len(&ln->s)-1)
                 b->cx = str_len(&ln->s)-1;
 
-        adjust_scroll(b);
-        return newline;
+        return adjust_scroll(b);
 }
 
 static int
@@ -578,7 +588,7 @@ jump_to_bottom_of_buffer(buffer *b)
         adjust_scroll(b);
 }
 
-static void
+static int
 prev_paragraph(buffer *b)
 {
         size_t nextln;
@@ -599,10 +609,11 @@ prev_paragraph(buffer *b)
         b->cy = nextln;
         b->cx = 0;
         b->al = nextln;
-        adjust_scroll(b);
+
+        return adjust_scroll(b);
 }
 
-static void
+static int
 next_paragraph(buffer *b)
 {
         size_t nextln;
@@ -623,7 +634,8 @@ next_paragraph(buffer *b)
         b->cy = nextln;
         b->cx = 0;
         b->al = nextln;
-        adjust_scroll(b);
+
+        return adjust_scroll(b);
 }
 
 static void
@@ -882,6 +894,7 @@ search(buffer *b, int reverse)
 
         b->state = BS_NORMAL;
 
+        center_view(b);
         adjust_scroll(b);
 }
 
@@ -1010,7 +1023,8 @@ buffer_process(buffer     *b,
                input_type  ty,
                char        ch)
 {
-        static void (*movement_ar[])(buffer *) = {
+        // here
+        static int (*movement_ar[])(buffer *) = {
                 buffer_up,
                 buffer_down,
                 buffer_right,
@@ -1022,23 +1036,17 @@ buffer_process(buffer     *b,
         switch (ty) {
         case INPUT_TYPE_CTRL: {
                 if (ch == CTRL_N) {
-                        buffer_down(b);
-                        return BP_MOV;
+                        return buffer_down(b) ? BP_INSERTNL : BP_MOV;
                 } else if (ch == CTRL_P) {
-                        buffer_up(b);
-                        return BP_MOV;
+                        return buffer_up(b) ? BP_INSERTNL : BP_MOV;
                 } else if (ch == CTRL_F) {
-                        buffer_right(b);
-                        return BP_MOV;
+                        return buffer_right(b) ? BP_INSERTNL : BP_MOV;
                 } else if (ch == CTRL_B) {
-                        buffer_left(b);
-                        return BP_MOV;
+                        return buffer_left(b) ? BP_INSERTNL : BP_MOV;
                 } else if (ch == CTRL_E) {
-                        buffer_eol(b);
-                        return BP_MOV;
+                        return buffer_eol(b) ? BP_INSERTNL : BP_MOV;
                 } else if (ch == CTRL_A) {
-                        buffer_bol(b);
-                        return BP_MOV;
+                        return buffer_bol(b) ? BP_INSERTNL : BP_MOV;
                 } else if (ch == CTRL_D) {
                         return del_char(b) ? BP_INSERTNL : BP_INSERT;
                 } else if (TAB(ch)) {
@@ -1055,10 +1063,10 @@ buffer_process(buffer     *b,
                         return backspace(b) ? BP_INSERTNL : BP_INSERT;
                 } else if (ch == CTRL_S || ch == CTRL_R) {
                         search(b, ch == CTRL_R);
-                        return BP_MOV;
+                        return BP_INSERTNL;
                 } else if (ch == CTRL_L) {
                         center_view(b);
-                        return BP_MOV;
+                        return BP_INSERTNL;
                 } else if (ch == CTRL_Y) {
                         return paste(b) ? BP_INSERTNL : BP_INSERT;
                 } else if (ch == CTRL_V) {
@@ -1066,7 +1074,7 @@ buffer_process(buffer     *b,
                         return BP_INSERTNL;
                 } else if (ch == CTRL_G) {
                         cancel(b);
-                        return BP_MOV;
+                        return BP_INSERTNL;
                 } else if (ch == CTRL_W) {
                         cut_selection(b);
                         return BP_INSERTNL;
@@ -1079,19 +1087,17 @@ buffer_process(buffer     *b,
                         return BP_MOV;
                 } else if (ch == '<') {
                         jump_to_bottom_of_buffer(b);
-                        return BP_MOV;
+                        return BP_INSERTNL;
                 } else if (ch == '>') {
                         jump_to_top_of_buffer(b);
-                        return BP_MOV;
+                        return BP_INSERTNL;
                 } else if (ch == '{') {
-                        prev_paragraph(b);
-                        return BP_MOV;
+                        return prev_paragraph(b) ? BP_INSERTNL : BP_MOV;
                 } else if (ch == '}') {
-                        next_paragraph(b);
-                        return BP_MOV;
+                        return next_paragraph(b) ? BP_INSERTNL : BP_MOV;
                 } else if (ch == 'k') {
                         kill_line(b);
-                        return BP_INSERTNL;
+                        return BP_MOV;
                 } else if (ch == 'f') {
                         jump_next_word(b);
                         return BP_MOV;

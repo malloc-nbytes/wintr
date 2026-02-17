@@ -448,7 +448,8 @@ window_handle(window *win)
                         else if (bproc == BP_INSERTNL)
                                 buffer_dump(win->ab);
                         else if (bproc == BP_MOV)
-                                buffer_dump(win->ab);
+                                buffer_dump_xy(win->ab);
+                                //buffer_dump(win->ab);
                 }
         }
 }
