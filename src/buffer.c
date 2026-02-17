@@ -1077,7 +1077,7 @@ input_from_minibuffer(buffer *b)
                 switch (ty = get_input(&ch)) {
                 case INPUT_TYPE_NORMAL:
                         if (ENTER(ch))
-                                break;
+                                goto done;
                         if (BACKSPACE(ch))
                                 str_pop(&input);
                         else
@@ -1092,6 +1092,7 @@ input_from_minibuffer(buffer *b)
                 }
         }
 
+done:
         return input.chars;
 }
 
@@ -1099,11 +1100,24 @@ static void
 jump_to_line(buffer *b)
 {
         char *input;
+        int   no;
 
         if (!(input = input_from_minibuffer(b)))
                 return;
 
-        assert(0);
+        if (!cstr_isdigit(input))
+                return;
+
+        no = atoi(input);
+
+        if (no-1 >= b->lns.len || no-1 <= 0)
+                return;
+
+        b->cx = 0;
+        b->cy = no-1;
+        b->al = no-1;
+
+        adjust_scroll(b);
 }
 
 // entrypoint
@@ -1216,6 +1230,7 @@ buffer_process(buffer     *b,
                         return BP_INSERTNL;
                 } else if (ch == 'g') {
                         jump_to_line(b);
+                        return BP_INSERTNL;
                 }
         } break;
         case INPUT_TYPE_ARROW: {
