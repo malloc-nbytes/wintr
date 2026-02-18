@@ -5,6 +5,7 @@
 #include "str.h"
 #include "colors.h"
 #include "fuzzy.h"
+#include "glconf.h"
 
 #include <assert.h>
 #include <stdio.h>
@@ -591,6 +592,8 @@ compilation_buffer(window *win)
 
         if (win->compile)
                 input = str_from(win->compile);
+        else if (glconf.defaults.compile_cmd)
+                input = str_from(glconf.defaults.compile_cmd);
         else
                 input = str_create();
 
@@ -652,8 +655,10 @@ metax(window *win)
         for (size_t i = 0; i < sizeof(cmds)/sizeof(*cmds); ++i)
                 dyn_array_append(names, cmds[i]);
 
-        if (!(selected = completion_run(win, "M-x", names)))
+        if (!(selected = completion_run(win, "M-x", names))) {
+                buffer_dump(win->ab);
                 goto done;
+        }
 
         if (!strcmp(selected, WINCMD_SPCAMT)) {
                 assert(0 && "set space amount");
