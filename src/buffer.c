@@ -253,12 +253,12 @@ adjust_hscroll(buffer *b)
 int
 adjust_scroll(buffer *b)
 {
-        int res;
+        int v, h;
 
-        res = adjust_vscroll(b);
-        res = adjust_hscroll(b) || res;
+        v = adjust_vscroll(b);
+        h = adjust_hscroll(b);
 
-        return res;
+        return v || h;
 }
 
 static int
@@ -1143,7 +1143,6 @@ buffer_process(buffer     *b,
                input_type  ty,
                char        ch)
 {
-        // here
         static int (*movement_ar[])(buffer *) = {
                 buffer_up,
                 buffer_down,
@@ -1262,7 +1261,8 @@ buffer_process(buffer     *b,
 
                 if (ch == 0) { // ctrl+space
                         selection(b);
-                        return BP_INSERTNL;
+                        //return BP_INSERTNL;
+                        return BP_MOV;
                 }
 
                 insert_char(b, ch, 1);
@@ -1420,7 +1420,7 @@ drawln(const buffer *b,
                 goto done;
         }
 
-        for (size_t i = 0; i < eol; ++i) {
+        for (size_t i = b->hscrloff; i < eol && i < b->parent->w; ++i) {
                 if (sraw[i] == '\t')
                         printf(GRAY ">" RESET);
                 putchar(sraw[i]);
