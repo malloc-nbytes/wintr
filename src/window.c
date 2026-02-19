@@ -666,11 +666,16 @@ find_replace(window *win)
                 return;
 
         win->ab->state = BS_SEARCH;
+
+        str last_search = win->ab->last_search;
         win->ab->last_search = from;
+
         buffer_dump(win->ab);
         str to = get_generic_input(win, NULL, "Replace To");
 
         win->ab->state = BS_SELECTION;
+
+        win->ab->last_search = last_search;
 
         if (to.len == 0) {
                 str_destroy(&from);
