@@ -13,6 +13,7 @@ extern struct {
         struct {
                 int space_amt;
                 const char *compile_cmd;
+                const char *to_clipboard;
         } defaults;
         struct {
                 size_t w;

@@ -53,5 +53,6 @@ void         buffer_dump(const buffer *b);
 void         buffer_dump_xy(const buffer *b);
 int          buffer_save(buffer *b);
 int          adjust_scroll(buffer *b);
+void         buffer_copybuf_to_clipboard(const buffer *b);
 
 #endif // BUFFER_H_INUCLUDED

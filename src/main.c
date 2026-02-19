@@ -86,6 +86,7 @@ parse_config(void)
         qcl_value *spaces_are_tabs = qcl_value_get(&config, "spaces-are-tabs");
         qcl_value *space_amt       = qcl_value_get(&config, "space-amt");
         qcl_value *compile_command = qcl_value_get(&config, "compile-command");
+        qcl_value *to_clipboard    = qcl_value_get(&config, "to-clipboard");
 
         if (show_trails && show_trails->kind != QCL_VALUE_KIND_BOOL) {
                 printf("show-trails must be a boolean\n");
@@ -111,6 +112,11 @@ parse_config(void)
                 ok = 0;
         }
 
+        if (to_clipboard && to_clipboard->kind != QCL_VALUE_KIND_STRING) {
+                printf("to-clipboard must be a string\n");
+                ok = 0;
+        }
+
         if (!ok)
                 return 0;
 
@@ -125,6 +131,9 @@ parse_config(void)
 
         if (compile_command)
                 glconf.defaults.compile_cmd = ((qcl_value_string *)compile_command)->s;
+
+        if (to_clipboard)
+                glconf.defaults.to_clipboard = ((qcl_value_string *)to_clipboard)->s;
 
         return 1;
 }

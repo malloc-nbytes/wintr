@@ -11,6 +11,7 @@
 #define WINCMD_COMP     "compile"
 #define WINCMD_SAVEBUF  "save-buffer"
 #define WINCMD_EXIT     "exit"
+#define WINCMD_COPYBUFTOCLIP "copybuffer-to-clipboard"
 #define WINCMDS { \
         WINCMD_SPCAMT, \
         WINCMD_KILLBUF, \
@@ -18,6 +19,7 @@
         WINCMD_COMP, \
         WINCMD_SAVEBUF, \
         WINCMD_EXIT, \
+        WINCMD_COPYBUFTOCLIP, \
 }
 
 typedef struct window {

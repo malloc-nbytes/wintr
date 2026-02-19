@@ -528,7 +528,7 @@ capture_command_output(str *input)
         return output;
 }
 
-#define COMPILATION_HEADER "*** Compilation [ %s ] [ (q)uit, a(g)ain, M-<tab>:switch-here ] ***\n\n"
+#define COMPILATION_HEADER "*** " BOLD WHITE "Compilation" RESET " [ " BOLD YELLOW "%s" RESET " ] [ (q)uit, a(g)ain, M-<tab>:switch-here ] ***\n\n"
 
 static void
 do_compilation(window *win)
@@ -673,6 +673,8 @@ metax(window *win)
                 buffer_save(win->ab);
         } else if (!strcmp(selected, WINCMD_EXIT)) {
                 quit(win);
+        } else if (!strcmp(selected, WINCMD_COPYBUFTOCLIP)) {
+                buffer_copybuf_to_clipboard(win->ab);
         } else {
                 assert(0 && "unknown M-x command");
         }

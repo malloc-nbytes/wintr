@@ -54,6 +54,33 @@ clear_cpy(buffer *b)
         dyn_array_clear(g_cpy_buf);
 }
 
+void
+buffer_copybuf_to_clipboard(const buffer *b)
+{
+        if (!glconf.defaults.to_clipboard)
+                return;
+
+        char *buf = (char *)malloc(g_cpy_buf.len+strlen(glconf.defaults.to_clipboard)+1);
+
+        dyn_array_append(g_cpy_buf, 0);
+
+        sprintf(buf, glconf.defaults.to_clipboard, g_cpy_buf.data);
+
+        int status = system(buf);
+
+        buffer_dump(b);
+
+        if (status == -1)
+                draw_status(b, "copy to clipboard failed");
+        else {
+                char msg[256] = {0};
+                sprintf(msg, "copied " YELLOW BOLD "%zu" RESET INVERT " bytes to system clipboard", g_cpy_buf.len);
+                draw_status(b, msg);
+        }
+
+        free(buf);
+}
+
 static void
 append_line_range_to_clipboard(line *ln, size_t from, size_t to) {
         if (!ln || from >= str_len(&ln->s))
