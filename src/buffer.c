@@ -1233,7 +1233,20 @@ done:
         return input.chars;
 }
 
-static void
+void
+buffer_jump_to_verts(buffer *b, int x, int y)
+{
+        if (y > b->lns.len-1 || y < 0)
+                return;
+        if (x > b->lns.data[y]->s.len-1 || x < 0)
+                return;
+        b->cx = x;
+        b->cy = y;
+        b->al = y;
+        adjust_scroll(b);
+}
+
+void
 jump_to_line(buffer *b)
 {
         char *input;

@@ -14,6 +14,7 @@
 #include <ctype.h>
 #include <unistd.h>
 #include <sys/wait.h>
+#include <regex.h>
 
 #define MAX_COMPLETIONS  200
 #define DISPLAY_COUNT     6
@@ -765,6 +766,64 @@ ctrlx(window *win)
         return 1;
 }
 
+static void
+try_jump_to_error(window *win)
+{
+        const line *ln       = NULL;
+        char       *filename = NULL;
+        int         row      = -1;
+        int         col      = -1;
+
+        ln = win->ab->lns.data[win->ab->al];
+
+        regex_t regex;
+        regmatch_t matches[4]; // full match + 3 capture groups
+
+        const char *pattern = "([^[:space:]:]+):([0-9]+):([0-9]+):";
+
+        if (regcomp(&regex, pattern, REG_EXTENDED)) {
+                fprintf(stderr, "Could not compile regex\n");
+                return;
+        }
+
+        if (regexec(&regex, ln->s.chars, 4, matches, 0) == 0) {
+                int fname_len = matches[1].rm_eo - matches[1].rm_so;
+
+                if (!(filename = malloc(fname_len + 1))) {
+                        regfree(&regex);
+                        return;
+                }
+
+                memcpy(filename,
+                       ln->s.chars + matches[1].rm_so,
+                       fname_len);
+                filename[fname_len] = '\0';
+
+                row = atoi(ln->s.chars + matches[2].rm_so);
+                col = atoi(ln->s.chars + matches[3].rm_so);
+        }
+
+        regfree(&regex);
+
+        if (!filename) {
+                buffer_dump(win->ab);
+                return;
+        }
+
+        if (row == -1 || col == -1) {
+                free(filename);
+                buffer_dump(win->ab);
+                return;
+        }
+
+        buffer *b = buffer_from_file(str_from(filename), win);
+        window_add_buffer(win, b, 1);
+        buffer_jump_to_verts(win->ab, col-1, row-1);
+
+        free(filename);
+        buffer_dump(win->ab);
+}
+
 void
 window_handle(window *win)
 {
@@ -790,7 +849,9 @@ window_handle(window *win)
                 ty = get_input(&ch);
                 int is_compilation = !strcmp(str_cstr(&win->ab->name), "ww-compilation");
 
-                if (ty == INPUT_TYPE_NORMAL && ch == 'q' && is_compilation) {
+                if (ty == INPUT_TYPE_NORMAL && ch == '\n' && is_compilation) {
+                        try_jump_to_error(win);
+                } else if (ty == INPUT_TYPE_NORMAL && ch == 'q' && is_compilation) {
                         win->ab = win->pb;
                         win->abi = win->pbi;
                         buffer_dump(win->ab);
