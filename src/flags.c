@@ -6,6 +6,6 @@
 void
 usage(void)
 {
-        printf("Usage: ww [OPTIONS...] <filepath>\n");
+        printf("Usage: sigil [OPTIONS...] <filepath>\n");
         exit(0);
 }

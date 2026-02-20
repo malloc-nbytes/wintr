@@ -1,7 +1,6 @@
 main
-wintr
-ww
-ww-debug-build
+sigil
+sigil-debug-build
 Makefile
 src/Makefile
 Makefile.in
@@ -18,7 +17,7 @@ missing
 src/.deps/
 src/Makefile
 src/Makefile.in
-src/wintr-debug-build
+src/sigil-debug-build
 src/include/config.h
 src/include/stamp-h1
 *.bin

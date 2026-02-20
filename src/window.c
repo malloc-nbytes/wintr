@@ -552,7 +552,7 @@ do_compilation(window *win)
         int exists = 0;
 
         for (size_t i = 0; i < win->bfrs.len; ++i) {
-                if (!strcmp(str_cstr(&win->bfrs.data[i]->name), "ww-compilation")) {
+                if (!strcmp(str_cstr(&win->bfrs.data[i]->name), "sigil-compilation")) {
                         b = win->bfrs.data[i];
                         win->ab = b;
                         win->abi = i;
@@ -563,7 +563,7 @@ do_compilation(window *win)
         if (!b) {
                 b = buffer_alloc(win);
                 str_destroy(&b->name);
-                b->name = str_from("ww-compilation");
+                b->name = str_from("sigil-compilation");
                 b->writable = 0;
         } else {
                 exists = 1;
@@ -866,7 +866,7 @@ window_handle(window *win)
                 buffer_proc bproc;
 
                 ty = get_input(&ch);
-                int is_compilation = !strcmp(str_cstr(&win->ab->name), "ww-compilation");
+                int is_compilation = !strcmp(str_cstr(&win->ab->name), "sigil-compilation");
 
                 if (ty == INPUT_TYPE_NORMAL && ch == '\n' && is_compilation) {
                         try_jump_to_error(win);
@@ -875,7 +875,7 @@ window_handle(window *win)
                         win->abi = win->pbi;
                         buffer_dump(win->ab);
                 } else if (ty == INPUT_TYPE_ALT && ch == '\t' && !is_compilation) {
-                        change_buffer_by_name(win, "ww-compilation");
+                        change_buffer_by_name(win, "sigil-compilation");
                         buffer_dump(win->ab);
                 } else if (ty == INPUT_TYPE_NORMAL && ch == 'g' && is_compilation)
                         do_compilation(win);
