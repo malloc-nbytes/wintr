@@ -693,6 +693,9 @@ tab(buffer *b)
 static void
 delete_until_eol(buffer *b)
 {
+        if (!writable(b))
+                return;
+
         line *ln;
         const str *s;
 

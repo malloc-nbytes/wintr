@@ -3,31 +3,35 @@
 
 #include "colors.h"
 
-#define HELP_DEF "*** " YELLOW BOLD "Help Buffer" RESET " ***\n" \
+#define HELP_DEF "*** " "Help Buffer ***\n" \
 "\n" \
-YELLOW "Sigil" RESET " is a text editor similar to vim or nano but with\n" \
+"Sigil is a text editor similar to vim or nano but with\n" \
 "a *very* heavy Emacs influence. It's controls are mostly\n" \
 "default Emacs keybindings (see controls).\n" \
 "\n" \
-"To begin, try finding a file with `" YELLOW "C-x C-f" RESET "' and choosing a file.\n" \
-"\n" YELLOW "TIP" RESET ": Whenever there is a suggestion box, use `" YELLOW "C-n" RESET "' and `" YELLOW "C-p" RESET "' to\n" \
-"     navigate through it.\n\n" \
-
-#define CONTROLS_DEF "*** " YELLOW BOLD "Controls" RESET " ***\n" \
+"To begin, try finding a file with `C-x C-f' and choosing a file.\n" \
+"\nTIP: Whenever there is a suggestion box, use `C-n' and `C-p' to\n" \
+"     navigate through it.\n" \
 "\n" \
-YELLOW "Note:\n" RESET \
+"You can also invoke `M-x find-file' or if you want to browse the various commands.\n" \
+"Feel free to navigate around this buffer for pactice (you cannot edit in here though).\n\n"
+
+#define CONTROLS_DEF "*** Controls ***\n" \
+"\n" \
+"Note:\n" \
+"\n" \
 "- C = Control\n" \
 "- M = Meta (alt)\n" \
 "- Any capital letter on its own means <Shift><letter>.\n" \
 "- any line with `*' means essential for tl;dr readers.\n" \
 "\n" \
-YELLOW "Window Manipulation:\n" RESET \
+"Window Manipulation:\n" \
 "\n" \
 "M-x     = issue window command *\n" \
 "C-x C-f = find file *\n" \
 "C-x C-q = quit sigil *\n" \
 "\n" \
-YELLOW "Navigation:\n" RESET \
+"Navigation:\n" \
 "\n" \
 "LEFT  | C-b = move cursor left *\n" \
 "RIGHT | C-f = move cursor right *\n" \
@@ -47,7 +51,7 @@ YELLOW "Navigation:\n" RESET \
 "M-v         = page up\n" \
 "M-m         = go to first non-space char on line\n" \
 "\n" \
-YELLOW "Text Manipulation:\n" RESET \
+"Text Manipulation:\n" \
 "\n" \
 "BACKSPC | C-h = backspace one char *\n" \
 "M-BACKSPC     = backspace word *\n" \
@@ -63,14 +67,14 @@ YELLOW "Text Manipulation:\n" RESET \
 "M-j           = combine lines\n" \
 "M-g           = jump to line number\n" \
 "\n" \
-YELLOW "Buffer Manipulation:\n" RESET \
+"Buffer Manipulation:\n" \
 "\n" \
 "C-x s = save buffer (must have write permissions) *\n" \
 "C-x x = invoke compilation buffer\n" \
 "C-x b = switch to different buffer *\n" \
 "C-x k = kill current buffer\n" \
 "\n" \
-YELLOW "Misc.:\n" RESET \
+"Misc.:\n" \
 "\n" \
 "C-l = center view\n"
 
